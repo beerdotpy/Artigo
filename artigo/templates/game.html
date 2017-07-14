@@ -65,14 +65,14 @@
                 submitTask();
             } 
             // Display the first question and delete it from the list
-            for (q in questions){
-                document.getElementById("primary").src = "/static/img/" + q + "/primary.jpg";
-                document.getElementById("image1").src = "/static/img/" + q + "/1.jpg";
-                document.getElementById("image2").src = "/static/img/" + q + "/2.jpg";
-                document.getElementById("image3").src = "/static/img/" + q + "/3.jpg";
-                current_question = q; // To track the answers
-                delete questions[q];
-                break;    
+            for (var i=0; i<questions.length; i++) {
+                document.getElementById("primary").src = "/static/img/" + questions[i] + "/primary.jpg";
+                document.getElementById("image1").src = "/static/img/" + questions[i] + "/1.jpg";
+                document.getElementById("image2").src = "/static/img/" + questions[i] + "/2.jpg";
+                document.getElementById("image3").src = "/static/img/" + questions[i] + "/3.jpg";
+                current_question = questions[i]; // To track the answers
+                questions.splice(i, 1);
+                break;
             }      
         }
 

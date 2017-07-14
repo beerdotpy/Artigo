@@ -1,6 +1,7 @@
 import constants, connections, consumers
 import ast
 import json
+import random
 
 # Get name from email
 def get_name(email):
@@ -10,10 +11,12 @@ def get_name(email):
 When both the users have entered the game, Start the game for both of them
 """
 def start_game(key):
-    questions = {}
-    data = dict(connections.fetch(constants.TABLE_QUESTION))
+    questions = []
+    # Pick random 5 questions from the whole list 
+    data = random.sample((dict(connections.fetch(constants.TABLE_QUESTION))), constants.NO_OF_QUESTION_IN_TASK)
     for d in data:
-        questions[str(d)] = data[d]
+        questions.append(str(d))
+    print questions
     message = constants.START_GAME + "-" + key + "-" + str(questions) 
     consumers.send_message_to_group(key, message) 
 
