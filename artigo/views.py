@@ -9,12 +9,14 @@ def login(request):
     if "user" not in request.session:
         if request.POST:
             name =  utils.get_name(request.POST['email'])
-            user = {
-                "email": request.POST['email'], 
-                "password": request.POST['password'],
-                "score": 0
-                }
-            connections.insert(constants.TABLE_USER, name, user) # Insert record into DB
+            user = connections.fetch_one(constants.TABLE_USER, name)
+            if user is None:        
+                user = {
+                    "email": request.POST['email'], 
+                    "password": request.POST['password'],
+                    "score": 0
+                    }
+                connections.insert(constants.TABLE_USER, name, user) # Insert record into DB
             request.session["user"] = user['email'] # Create session for user
 
             return HttpResponseRedirect(reverse('index')) 
@@ -22,7 +24,8 @@ def login(request):
     return HttpResponseRedirect(reverse('index')) 
 
 def index(request):
-    return render (request,'index.html',{'email': request.session["user"]}) 
+    user = connections.fetch_one(constants.TABLE_USER, utils.get_name(request.session["user"]))
+    return render (request,'index.html',{'email': request.session["user"], 'score': user["score"]}) 
 
 def logout(request):
     if "user" in request.session:
