@@ -1,0 +1,3 @@
+pip install Pyrebase
+pip install fcm-django
+pip install -U channels

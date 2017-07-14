@@ -1,0 +1,14 @@
+TABLE_USER = "User"
+TABLE_QUEUE = "Queue"
+TABLE_QUESTION = "Question"
+TABLE_LOG = "Log"
+TABLE_GROUP = "Group" 
+CONNECTED = "client_connected"
+LOG = "log"
+START_GAME = "start_game"
+FINISH_GAME = "finished"
+TASK_COMPLETE = "task complete"
+LEAVE_GROUP = "leave group"
+ANSWERS = {}
+NO_OF_QUESTION_IN_TASK = 5
+CONNECTED_USERS = {}

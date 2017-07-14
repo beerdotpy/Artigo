@@ -1,0 +1,118 @@
+
+{% load staticfiles %}
+
+<html>
+<head>	
+<title>Artigo</title>
+    <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+    <script>
+        var user = "{{email}}";
+        var questions, current_question; 
+        var submitted_answers = {};
+        var group_key;
+        socket = new WebSocket("ws://" + window.location.host);
+        socket.onmessage = function(e) {
+            console.log("Message received - " + e.data);
+            if (e.data.match("start_game")) {
+                console.log("Lets Play !!!!!")
+                group_key = e.data.split("-")[1]
+                questions = JSON.parse(e.data.split("-")[2].replace(/'/g, '"'));  // Replace quotes to make valid JSON string
+                displayQuestion()        
+                // Make the Questions div visible
+                document.getElementById("divQuestions").style.display = "block";
+                document.getElementById("main_frame").style.display = "none";
+            } else if (e.data.match("task complete")) {
+                document.getElementById("wait_score").style.display = "none";
+                document.getElementById("score").innerHTML = e.data.split("-")[1]
+                document.getElementById("task_finish").style.display = "block";
+            } else if (e.data.match("leave group")) {
+                window.location.href = window.location.origin + "/index"; 
+            }
+        }
+        socket.onopen = function() {
+           socket.send("client_connected-" + "{{email}}");
+        }
+        socket.onclose = function(e) {
+            socket.send("client_disconnect-" + "{{email}}");
+        }
+        // Call onopen directly if socket is already open
+        if (socket.readyState == WebSocket.OPEN) socket.onopen();
+
+        function evaluateQuestion() {
+            if (document.getElementById('option1').checked) {
+                value = "1";
+            } else if (document.getElementById('option2').checked) {
+                value = "2";
+            } else {
+                value = "3";
+            }
+            var log = {
+                "user": user, 
+                "question": current_question, 
+                "answer": value,
+                "timestamp": Date.now(),
+                "group_key": group_key
+            };
+            submitted_answers[current_question] = value;
+            // For logging of answers
+            socket.send("log-" + JSON.stringify(log));
+            // Show the next question 
+            displayQuestion();
+        }
+
+        function displayQuestion() {
+            if (Object.keys(questions).length == 0) {
+                submitTask();
+            } 
+            // Display the first question and delete it from the list
+            for (q in questions){
+                document.getElementById("primary").src = "/static/img/" + q + "/primary.jpg";
+                document.getElementById("image1").src = "/static/img/" + q + "/1.jpg";
+                document.getElementById("image2").src = "/static/img/" + q + "/2.jpg";
+                document.getElementById("image3").src = "/static/img/" + q + "/3.jpg";
+                current_question = q; // To track the answers
+                delete questions[q];
+                break;    
+            }      
+        }
+
+        function submitTask() {
+            document.getElementById("divQuestions").style.display = "none";
+            document.getElementById("wait_score").style.display = "block";
+        }
+
+        function finishGame() {
+            socket.send("leave group-" + group_key);   
+        }
+
+    </script>
+</head>
+<body> 
+    <center><input id="logout" type="button" value="Logout" onclick="finishGame()" /></center><br><br>   
+    <div id="main_frame">
+        <p><center><b> Waiting for 2nd Player </b></p></center>
+    </div>
+    <div id="wait_score" style="display: none"><center>
+        <p> Calculating Scores .... <br> Pleae wait for other player to finish. </p>
+        </center> 
+    </div>
+    <div id="task_finish" style="display: none"><center>
+        <h1> Congratulations !!!</h1>
+        <h2> Task completed successfully. Score is <p id="score"></p></h2>
+        <center><input id="next_task" type="button" value="Next Task" onclick="location.reload()" />
+        <center><input id="finish" type="button" value="Finish" onclick="finishGame()" />
+        </center>
+    </div>
+    <div id="divQuestions" style="display: none">
+        <div>
+            <center><img id="primary" height="500" width="500"></img><br><br><br><br>
+        </div>
+        <div id="divOptions"> <center> 
+            <input type="radio" name="option" id="option1" value="1" checked="checked"><img id="image1" height="300" width="300"></img>
+            <input type="radio" name="option" id="option2" value="2"><img id="image2" height="300" width="300"></img>
+            <input type="radio" name="option" id="option3" value="3"><img id="image3" height="300" width="300"></img>
+        </div>
+            <center><input id="next" type="button" value="Next" onclick="evaluateQuestion()"/>
+    </div>
+</body>
+</html>
