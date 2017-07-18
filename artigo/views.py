@@ -24,8 +24,15 @@ def login(request):
     return HttpResponseRedirect(reverse('index')) 
 
 def index(request):
-    user = connections.fetch_one(constants.TABLE_USER, utils.get_name(request.session["user"]))
-    return render (request,'index.html',{'email': request.session["user"], 'score': user["score"]}) 
+    if request.session["user"] == 'squad@admin.co':
+        results_list = []
+        results = dict(connections.fetch(constants.TABLE_RESULT))
+        for r in results:
+            results_list.append(results[r])
+        return render (request,'index.html',{'email': request.session["user"], 'results': results_list})
+    else:
+        user = connections.fetch_one(constants.TABLE_USER, utils.get_name(request.session["user"]))
+        return render (request,'index.html',{'email': request.session["user"], 'score': user["score"]}) 
 
 def logout(request):
     if "user" in request.session:

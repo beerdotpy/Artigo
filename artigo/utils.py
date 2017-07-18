@@ -48,11 +48,48 @@ def evaluate_score(key):
             answers.append(str_to_dict)
             names.append(d)
     # Wait for both the users to submit
-    if len(answers) == 2: 
+    if len(answers) == 2:
+        questions_answered = set(answers[0].items()) & set(answers[1].items())
+        update_attempt(questions_answered)
         score = len(set(answers[0].items()) & set(answers[1].items()))
         update_users_score(names, score)
         message = constants.TASK_COMPLETE + "-" + str(score) 
         consumers.send_message_to_group(key, message)
+
+"""
+Whenever 2 users submits same answer for a question,
+Update the redundancy to 2 and whatever answer both user has answered to also 2 
+"""
+def update_attempt(question_answers):
+    for q in question_answers:
+        data = connections.fetch_one(constants.TABLE_QUESTION, q[0])
+        
+        data["redundancy"] += 2
+        if str(q[1]) == '1':
+            data["a"] += 2
+        elif str(q[1]) == '2':
+            data["b"] += 2
+        else:
+            data["c"] += 2
+        connections.insert(constants.TABLE_QUESTION, q[0], data)
+        if data["redundancy"] == constants.REDUNDANCE:
+            check_for_consensus(data, q[0])
+
+"""
+Whenever a question has reached its max redundancy,
+The answer with equal or greater than (REDUNDANCE/2) value will be its actual answer 
+"""
+def check_for_consensus(data, question):
+    result = {}
+    
+    if data["a"] >= (constants.REDUNDANCE)/2:
+        result = {"question": question, "actual_answer": "a"}
+    elif data["b"] >= (constants.REDUNDANCE)/2:
+        result = {"question": question, "actual_answer": "b"}
+    else:
+        result = {"question": question, "actual_answer": "c"}
+    connections.insert(constants.TABLE_RESULT, question, result)
+    connections.delete(constants.TABLE_QUESTION, question)
 
 def update_users_score(names, score):
     print score

@@ -5,11 +5,19 @@
 <body>
     <div><center>
         <h1> Welcome to Artigo </h1>
+        {% if score %}
         <h2> Hi, {{ email }} </h2>
         <h3> Points {{ score}} </h3>
         <br>
-        <a href="/logout"><span style="font-weight:400;color:#31708f;border-bottom:1px dotted #31708f">Logout</span></a><br>
         <a href="/start/task"><span style="font-weight:400;color:#31708f;border-bottom:1px dotted #31708f">Start Game</span></a>
+        {% else %}
+        <h2> Hi, Admin </h2><br>
+        <h3> Questions which have reached a consensus </h3>
+        {% for r in results %}
+            <h4>Question: {{r.question}}   Actual Answer: {{r.actual_answer}}</h4> 
+        {% endfor %}
+        {% endif %}
+        <br><a href="/logout"><span style="font-weight:400;color:#31708f;border-bottom:1px dotted #31708f">Logout</span></a><br>
     </div>    
 </body>
 </html>
